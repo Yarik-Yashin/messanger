@@ -91,6 +91,7 @@ def getMessages():
     for i in messages_list:
         return_dict[j] = i
     connection.close()
+    print(return_dict)
     return return_dict
 
 
@@ -107,6 +108,16 @@ def sendMessage():
                     '{text}', '{date}')""")
     connection.commit()
     return 'Ok'
+
+
+@app.route('/getName', methods=['POST', 'GET'])
+def getName():
+    connection = sqlite3.connect('network_database.db')
+    cursor = connection.cursor()
+    id = request.form['id']
+    name = cursor.execute(f"""SELECT login FROM users WHERE _id == {id}""").fetchone()[0]
+    connection.close()
+    return name
 
 
 if __name__ == '__main__':

@@ -105,6 +105,8 @@ class Interface(QMainWindow):
         return list_of_contacts
 
     def toDialog(self):
+        for i in range(self.vbox2.count()):
+            self.vbox2.itemAt(i).widget().close()
         try:
             self.startLabel.setText('')
             self.vbox2.removeWidget(self.startLabel)
@@ -115,10 +117,22 @@ class Interface(QMainWindow):
         self.getter = getter
         sender = self.name
         messages = self.getMessages(name=sender, contact_name=getter)
-
+        print(messages)
         for i in messages:
+            widget = QWidget(self)
+
             label = QLabel(text=i[3])
-            self.vbox2.addWidget(label)
+            label.setParent(widget)
+            label.move(20, 20)
+            name_label_text = requests.post('http://127.0.0.1:5000/getName', {'id': i[1]}).text
+            name_label = QLabel(text=name_label_text)
+            name_label.setParent(widget)
+            widget.setStyleSheet('background-color:whitesmoke;'
+                                 'border: 1px solid black;'
+                                 'margin-left: 10px;')
+            label.setStyleSheet('border: initial;')
+            widget.setFixedSize(400, 70)
+            self.vbox2.addWidget(widget)
 
     def addContact(self):
         a = requests.post('http://127.0.0.1:5000/add_contact',
@@ -167,6 +181,7 @@ class Interface(QMainWindow):
         try:
             a = requests.post('http://127.0.0.1:5000/sendMessage',
                               {'login': self.name, 'contact_name': self.getter, 'text': self.newMessageField.text()})
+            self.newMessageField.setText('')
         except AttributeError:
             pass
 
