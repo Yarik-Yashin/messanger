@@ -2,7 +2,7 @@ from flask import *
 import os
 import hashlib
 import sqlite3
-import json
+import datetime
 
 app = Flask(__name__)
 
@@ -73,6 +73,38 @@ def add_contact():
     cursor.execute(f"""INSERT INTO contacts(contact_id, _id)
         VALUES ((SELECT _id FROM users WHERE login =='{name}'), (SELECT _id FROM users WHERE login =='{contact_name}'))
         """)
+    connection.commit()
+    return 'Ok'
+
+
+@app.route('/getMessages', methods=['POST', 'GET'])
+def getMessages():
+    connection = sqlite3.connect('network_database.db')
+    cursor = connection.cursor()
+    name = request.form['name']
+    contact_name = request.form['contact_name']
+    messages_list = cursor.execute(
+        f"""SELECT * FROM messages WHERE author_id ==(SELECT _id FROM users WHERE login == '{name}') 
+            AND getter_id ==(SELECT _id FROM users WHERE login == '{contact_name}')""").fetchall()
+    j = 0
+    return_dict = dict()
+    for i in messages_list:
+        return_dict[j] = i
+    connection.close()
+    return return_dict
+
+
+@app.route('/sendMessage', methods=['POST', 'GET'])
+def sendMessage():
+    connection = sqlite3.connect('network_database.db')
+    cursor = connection.cursor()
+    text = request.form['text']
+    sender = request.form['login']
+    getter = request.form['contact_name']
+    date = datetime.datetime.now()
+    cursor.execute(f"""INSERT INTO messages(author_id, getter_id, text, datetime)
+                    VALUES((SELECT _id FROM users WHERE login=='{sender}'), (SELECT _id FROM users WHERE login=='{getter}'),
+                    '{text}', '{date}')""")
     connection.commit()
     return 'Ok'
 

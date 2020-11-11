@@ -84,6 +84,16 @@ class Interface(QMainWindow):
         self.scroll2.setStyleSheet('border: 2px solid black')
         self.scroll2.setFixedSize(600, 600)
         self.scroll2.move(400, 0)
+        self.newMessageField = QLineEdit(self)
+        self.newMessageField.move(400, 620)
+        self.newMessageField.resize(380, 80)
+        self.button_new_message = QPushButton(self, text='✓')
+        self.button_new_message.move(780, 620)
+        self.button_new_message.resize(20, 80)
+        self.button_new_message.clicked.connect(self.sendMessage)
+        self.label_of_new_message = QLabel(self, text='Введите сообщение')
+        self.label_of_new_message.move(400, 600)
+        self.label_of_new_message.resize(400, 20)
         """Правая часть^"""
 
     def getContacts(self):
@@ -95,7 +105,20 @@ class Interface(QMainWindow):
         return list_of_contacts
 
     def toDialog(self):
-        print('Test')
+        try:
+            self.startLabel.setText('')
+            self.vbox2.removeWidget(self.startLabel)
+            del self.startLabel
+        except AttributeError:
+            pass
+        getter = self.sender().parent().children()[2].text()
+        self.getter = getter
+        sender = self.name
+        messages = self.getMessages(name=sender, contact_name=getter)
+
+        for i in messages:
+            label = QLabel(text=i[3])
+            self.vbox2.addWidget(label)
 
     def addContact(self):
         a = requests.post('http://127.0.0.1:5000/add_contact',
@@ -131,6 +154,21 @@ class Interface(QMainWindow):
             self.vbox.addWidget(widget)
         self.new_contact_field.setText('')
         self.contacts = self.getContacts()
+
+    def getMessages(self, name, contact_name):
+        messages = requests.post('http://127.0.0.1:5000/getMessages', {'name': name, 'contact_name': contact_name}).text
+        messages = json.loads(messages)
+        return_list = list()
+        for i in messages:
+            return_list.append(messages[i])
+        return return_list
+
+    def sendMessage(self):
+        try:
+            a = requests.post('http://127.0.0.1:5000/sendMessage',
+                              {'login': self.name, 'contact_name': self.getter, 'text': self.newMessageField.text()})
+        except AttributeError:
+            pass
 
 
 class ClickLabel(QLabel):
