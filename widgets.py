@@ -5,7 +5,8 @@ from PyQt5 import QtCore, QtMultimedia, QtGui, uic
 from PyQt5.QtGui import QCursor
 import requests
 import json
-
+import time
+import asyncio
 
 class Interface(QMainWindow):
     def __init__(self, name):
@@ -105,6 +106,12 @@ class Interface(QMainWindow):
         return list_of_contacts
 
     def toDialog(self):
+        if not self.sender().parent().children()[2].text():
+            send = self.last_sender
+            self.last_sender = send
+        else:
+            send = self.sender()
+            self.last_sender = send
         for i in range(self.vbox2.count()):
             self.vbox2.itemAt(i).widget().close()
         try:
@@ -113,11 +120,10 @@ class Interface(QMainWindow):
             del self.startLabel
         except AttributeError:
             pass
-        getter = self.sender().parent().children()[2].text()
+        getter = send.parent().children()[2].text()
         self.getter = getter
         sender = self.name
         messages = self.getMessages(name=sender, contact_name=getter)
-        print(messages)
         for i in messages:
             widget = QWidget(self)
 
@@ -139,7 +145,6 @@ class Interface(QMainWindow):
                           data={'name': self.name, 'contact_name': self.new_contact_field.text()})
         new_contacts = list(filter(lambda x: x not in self.contacts, self.getContacts()))
 
-        print(new_contacts)
         for i in range(len(new_contacts)):
             name = QLabel(self, text=new_contacts[i][0])
             name.setStyleSheet('border-radius: 20%;'
@@ -179,9 +184,11 @@ class Interface(QMainWindow):
 
     def sendMessage(self):
         try:
-            a = requests.post('http://127.0.0.1:5000/sendMessage',
-                              {'login': self.name, 'contact_name': self.getter, 'text': self.newMessageField.text()})
+            requests.post('http://127.0.0.1:5000/sendMessage',
+                          {'login': self.name, 'contact_name': self.getter, 'text': self.newMessageField.text()})
+            self.toDialog()
             self.newMessageField.setText('')
+
         except AttributeError:
             pass
 
@@ -259,3 +266,7 @@ class Login(QMainWindow):
         ex2 = Registration()
         ex2.show()
         self.close()
+
+
+class Customization(QMainWindow):
+    pass
