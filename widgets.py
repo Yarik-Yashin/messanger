@@ -1,18 +1,16 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import *
 from PyQt5 import QtCore, QtMultimedia, QtGui, uic
 from PyQt5.QtGui import QCursor
 import requests
 import json
-import time
-import asyncio
+
 
 class Interface(QMainWindow):
     def __init__(self, name):
         super().__init__()
         self.name = name
-        self.theme = 'white'
         self.initUI()
 
     def initUI(self):
@@ -96,6 +94,10 @@ class Interface(QMainWindow):
         self.label_of_new_message.move(400, 600)
         self.label_of_new_message.resize(400, 20)
         """Правая часть^"""
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.toDialog)
+        self.timer.start()
 
     def getContacts(self):
         a = requests.post('http://127.0.0.1:5000/contacts', data={'name': self.name}).text
@@ -106,12 +108,18 @@ class Interface(QMainWindow):
         return list_of_contacts
 
     def toDialog(self):
-        if not self.sender().parent().children()[2].text():
-            send = self.last_sender
-            self.last_sender = send
-        else:
-            send = self.sender()
-            self.last_sender = send
+        try:
+            if not self.sender().parent().children()[2].text():
+                send = self.last_sender
+                self.last_sender = send
+            else:
+                send = self.sender()
+                self.last_sender = send
+        except AttributeError:
+            try:
+                send = self.last_sender
+            except AttributeError:
+                return
         for i in range(self.vbox2.count()):
             self.vbox2.itemAt(i).widget().close()
         try:
@@ -266,7 +274,3 @@ class Login(QMainWindow):
         ex2 = Registration()
         ex2.show()
         self.close()
-
-
-class Customization(QMainWindow):
-    pass
