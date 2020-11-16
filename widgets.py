@@ -17,24 +17,18 @@ class Interface(QMainWindow):
         self.setGeometry(100, 100, 1000, 700)
 
         """Левая часть """
-        self.contacts = self.getContacts()
+        self.contacts = self.getContacts()  # Получаем список контактов
         self.scroll = QScrollArea(self)
         self.widget = QWidget()
-        self.vbox = QVBoxLayout()
+        self.vbox = QVBoxLayout()  # Создаем сетку для размещения на ней контактов
         for i in range(len(self.contacts)):
             name = QLabel(self, text=self.contacts[i][0])
             name.setStyleSheet('border-radius: 20%;'
                                'font-size: 20px;'
                                )
-            pixmap = QPixmap(self.contacts[i][1].replace("'", ""))
-            image = QLabel(self)
-            image.setPixmap(pixmap)
-            image.resize(60, 60)
-            image.setStyleSheet('border-radius: 30%;')
             button = QPushButton(text='Перейти к диалогу')
-            widget = QWidget(self)
+            widget = QWidget(self)  # Создаем виджет, на который крепим кнопку и имя
             button.setParent(widget)
-            image.setParent(widget)
             name.setParent(widget)
             name.move(60, 10)
             button.move(10, 60)
@@ -43,10 +37,9 @@ class Interface(QMainWindow):
             widget.setStyleSheet('border: 2px solid black;'
                                  'border-radius: 30%;'
                                  'font-size: 20px;'
-                                 'padding: 3%;'
-                                 f'background-color: {self.theme};')
+                                 'padding: 3%;')
             widget.setFixedSize(350, 100)
-            self.vbox.addWidget(widget)
+            self.vbox.addWidget(widget)  # Прикрепляем виджет к сетке
         self.widget.setLayout(self.vbox)
 
         self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -94,12 +87,14 @@ class Interface(QMainWindow):
         self.label_of_new_message.move(400, 600)
         self.label_of_new_message.resize(400, 20)
         """Правая часть^"""
+        # Создаем таймер для проверки новых сообщений
         self.timer = QTimer()
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self.toDialog)
         self.timer.start()
 
     def getContacts(self):
+        # Функция для получения списка контактов
         a = requests.post('http://127.0.0.1:5000/contacts', data={'name': self.name}).text
         a = json.loads(a)
         list_of_contacts = list()
@@ -108,8 +103,9 @@ class Interface(QMainWindow):
         return list_of_contacts
 
     def toDialog(self):
+        # Функция для перехода к диалогу
         try:
-            if not self.sender().parent().children()[2].text():
+            if not self.sender().parent().children()[1].text():
                 send = self.last_sender
                 self.last_sender = send
             else:
@@ -128,7 +124,7 @@ class Interface(QMainWindow):
             del self.startLabel
         except AttributeError:
             pass
-        getter = send.parent().children()[2].text()
+        getter = send.parent().children()[1].text()
         self.getter = getter
         sender = self.name
         messages = self.getMessages(name=sender, contact_name=getter)
@@ -149,8 +145,9 @@ class Interface(QMainWindow):
             self.vbox2.addWidget(widget)
 
     def addContact(self):
-        a = requests.post('http://127.0.0.1:5000/add_contact',
-                          data={'name': self.name, 'contact_name': self.new_contact_field.text()})
+        # Функция для добавления контактов
+        requests.post('http://127.0.0.1:5000/add_contact',
+                      data={'name': self.name, 'contact_name': self.new_contact_field.text()})
         new_contacts = list(filter(lambda x: x not in self.contacts, self.getContacts()))
 
         for i in range(len(new_contacts)):
@@ -183,6 +180,7 @@ class Interface(QMainWindow):
         self.contacts = self.getContacts()
 
     def getMessages(self, name, contact_name):
+        # Функция для получения сообщений
         messages = requests.post('http://127.0.0.1:5000/getMessages', {'name': name, 'contact_name': contact_name}).text
         messages = json.loads(messages)
         return_list = list()
@@ -191,6 +189,7 @@ class Interface(QMainWindow):
         return return_list
 
     def sendMessage(self):
+        # Функция для отправки сообщений
         try:
             requests.post('http://127.0.0.1:5000/sendMessage',
                           {'login': self.name, 'contact_name': self.getter, 'text': self.newMessageField.text()})
@@ -202,6 +201,7 @@ class Interface(QMainWindow):
 
 
 class ClickLabel(QLabel):
+    # Класс для кликабельных надписей
     clicked = QtCore.pyqtSignal()
 
     def mousePressEvent(self, event):
@@ -210,6 +210,7 @@ class ClickLabel(QLabel):
 
 
 class Registration(QMainWindow):
+    # Класс регистрации
     def __init__(self):
         super().__init__()
 
@@ -244,6 +245,7 @@ class Registration(QMainWindow):
 
 
 class Login(QMainWindow):
+    # Класс авторизации
     def __init__(self):
         super().__init__()
         uic.loadUi('login.ui', self)
