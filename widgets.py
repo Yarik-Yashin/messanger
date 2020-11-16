@@ -89,13 +89,13 @@ class Interface(QMainWindow):
         """Правая часть^"""
         # Создаем таймер для проверки новых сообщений
         self.timer = QTimer()
-        self.timer.setInterval(1000)
+        self.timer.setInterval(100000)
         self.timer.timeout.connect(self.toDialog)
         self.timer.start()
 
     def getContacts(self):
         # Функция для получения списка контактов
-        a = requests.post('http://127.0.0.1:5000/contacts', data={'name': self.name}).text
+        a = requests.post('https://f535f8e21008.ngrok.io/contacts', data={'name': self.name}).text
         a = json.loads(a)
         list_of_contacts = list()
         for i in a:
@@ -134,7 +134,7 @@ class Interface(QMainWindow):
             label = QLabel(text=i[3])
             label.setParent(widget)
             label.move(20, 20)
-            name_label_text = requests.post('http://127.0.0.1:5000/getName', {'id': i[1]}).text
+            name_label_text = requests.post('https://f535f8e21008.ngrok.io/getName', {'id': i[1]}).text
             name_label = QLabel(text=name_label_text)
             name_label.setParent(widget)
             widget.setStyleSheet('background-color:whitesmoke;'
@@ -146,7 +146,7 @@ class Interface(QMainWindow):
 
     def addContact(self):
         # Функция для добавления контактов
-        requests.post('http://127.0.0.1:5000/add_contact',
+        requests.post('https://f535f8e21008.ngrok.io/add_contact',
                       data={'name': self.name, 'contact_name': self.new_contact_field.text()})
         new_contacts = list(filter(lambda x: x not in self.contacts, self.getContacts()))
 
@@ -181,7 +181,7 @@ class Interface(QMainWindow):
 
     def getMessages(self, name, contact_name):
         # Функция для получения сообщений
-        messages = requests.post('http://127.0.0.1:5000/getMessages', {'name': name, 'contact_name': contact_name}).text
+        messages = requests.post('https://f535f8e21008.ngrok.io/getMessages', {'name': name, 'contact_name': contact_name}).text
         messages = json.loads(messages)
         return_list = list()
         for i in messages:
@@ -191,7 +191,7 @@ class Interface(QMainWindow):
     def sendMessage(self):
         # Функция для отправки сообщений
         try:
-            requests.post('http://127.0.0.1:5000/sendMessage',
+            requests.post('https://f535f8e21008.ngrok.io/sendMessage',
                           {'login': self.name, 'contact_name': self.getter, 'text': self.newMessageField.text()})
             self.toDialog()
             self.newMessageField.setText('')
@@ -229,7 +229,7 @@ class Registration(QMainWindow):
         if self.lineEdit.text() and self.lineEdit_2.text() and self.lineEdit_3.text() and \
                 self.lineEdit_2.text() == self.lineEdit_3.text():
             a = requests.post(data={'login': self.lineEdit.text(), 'password': self.lineEdit_2.text()},
-                              url='http://127.0.0.1:5000/registration').text
+                              url='https://f535f8e21008.ngrok.io/registration').text
             if a == 'Ok':
                 self.name = self.lineEdit.text()
                 global ex
@@ -263,7 +263,7 @@ class Login(QMainWindow):
     def checkForm(self):
         if self.lineEdit.text() and self.lineEdit_2.text():
             a = requests.post(data={'login': self.lineEdit.text(), 'password': self.lineEdit_2.text()},
-                              url='http://127.0.0.1:5000/login').text
+                              url='https://f535f8e21008.ngrok.io/login').text
             if a == 'Ok':
                 self.name = self.lineEdit.text()
                 global ex
